@@ -8,17 +8,18 @@ HOW TO USE:
   3. Output: listings_catalog.csv
   4. Upload to Facebook Commerce Manager:
        business.facebook.com
-       > Commerce Manager > Catalog > Add Items > Use Data Feed > Upload File
+       > Commerce Manager > Catalog > Data Sources > Re-upload data file
 
 HOW TO UPDATE A PRICE:
   - Find the listing by its id (e.g. TILE-WL-004 for wood-look)
   - Change the "price" value  (format must be: "50.00 USD")
   - Re-run script — new CSV is generated automatically
+  - Re-upload listings_catalog.csv to Facebook
 
-NOTE ON IMAGES:
-  Images are pulled from GitHub raw URLs.
+NOTE ON IMAGES AND VIDEOS:
+  Images and videos are pulled from GitHub raw URLs.
   The FB-MarkP repository must be set to PUBLIC for Facebook to load them.
-  If private, host images on Imgur or Google Drive (public link) instead.
+  If private, host files on Imgur or Google Drive (public link) instead.
 """
 
 import csv
@@ -38,15 +39,21 @@ MAX_EXTRA_IMAGES = 5
 
 
 def img(filename):
-    """Convert a filename to a fully encoded GitHub raw image URL."""
+    """Convert an image filename to a fully encoded GitHub raw URL."""
+    return BASE_IMAGE_URL + urllib.parse.quote(filename)
+
+
+def vid(filename):
+    """Convert a video filename to a fully encoded GitHub raw URL."""
     return BASE_IMAGE_URL + urllib.parse.quote(filename)
 
 
 # ─────────────────────────────────────────────────────────
 # LISTINGS
-# To add a listing : copy any block below, paste at the end, change the values
+# To add a listing : copy any block, paste at end, change values
 # To remove        : delete the block
 # To update price  : change the "price" value and re-run
+# To update video  : change the "video" value and re-run
 # ─────────────────────────────────────────────────────────
 LISTINGS = [
 
@@ -64,7 +71,7 @@ LISTINGS = [
             "Size: 24x48 inches | Finish: Polished | Style: White marble with grey veining. "
             "Text for details and available quantity. Can hold with deposit."
         ),
-        "price": "99.00 USD",   # UPDATE PRICE HERE
+        "price": "99.00 USD",
         "image_link": img("WhatsApp Image 2026-06-10 at 16.09.34 (2).jpeg"),
         "additional_images": [
             img("WhatsApp Image 2026-06-10 at 16.09.36 (1).jpeg"),
@@ -73,6 +80,7 @@ LISTINGS = [
             img("WhatsApp Image 2026-06-10 at 16.09.41.jpeg"),
             img("WhatsApp Image 2026-06-10 at 16.09.35.jpeg"),
         ],
+        "video": vid("WhatsApp Video 2026-06-10 at 16.09.30.mp4"),
     },
 
     # ── LISTING 2 — Calacatta Gold Polished 24x48 ─────────
@@ -87,12 +95,13 @@ LISTINGS = [
             "Size: 24x48 inches | Finish: Polished | Style: Calacatta Gold veining. "
             "Text to confirm availability."
         ),
-        "price": "99.00 USD",   # UPDATE PRICE HERE
+        "price": "99.00 USD",
         "image_link": img("WhatsApp Image 2026-06-10 at 16.09.41 (1).jpeg"),
         "additional_images": [
             img("WhatsApp Image 2026-06-10 at 16.09.41 (2).jpeg"),
             img("WhatsApp Image 2026-06-10 at 16.09.41 (4).jpeg"),
         ],
+        "video": vid("WhatsApp Video 2026-06-10 at 16.09.38.mp4"),
     },
 
     # ── LISTING 3 — Dark Charcoal Matte 24x48 ─────────────
@@ -107,11 +116,12 @@ LISTINGS = [
             "Size: 24x48 inches | Finish: Matte | Style: Dark charcoal slate look. "
             "Text for availability and quantity."
         ),
-        "price": "70.00 USD",   # UPDATE PRICE HERE
+        "price": "70.00 USD",
         "image_link": img("WhatsApp Image 2026-06-10 at 16.09.33 (1).jpeg"),
         "additional_images": [
             img("WhatsApp Image 2026-06-10 at 16.09.34 (1).jpeg"),
         ],
+        "video": vid("WhatsApp Video 2026-06-10 at 16.09.32 (3).mp4"),
     },
 
     # ── LISTING 4 — Wood-Look Plank ────────────────────────
@@ -132,6 +142,7 @@ LISTINGS = [
         "additional_images": [
             img("WhatsApp Image 2026-06-10 at 16.09.35 (1).jpeg"),
         ],
+        "video": vid("WhatsApp Video 2026-06-10 at 16.09.37.mp4"),
     },
 
     # ── LISTING 5 — Blue-Grey Large Format ────────────────
@@ -152,6 +163,7 @@ LISTINGS = [
         "additional_images": [
             img("WhatsApp Image 2026-06-10 at 16.09.34.jpeg"),
         ],
+        "video": vid("WhatsApp Video 2026-06-10 at 16.09.35.mp4"),
     },
 
     # ── LISTING 6 — Catch-All / Traffic Driver ─────────────
@@ -176,6 +188,7 @@ LISTINGS = [
             img("WhatsApp Image 2026-06-10 at 16.09.41 (3).jpeg"),
             img("WhatsApp Image 2026-06-10 at 16.09.38 (1).jpeg"),
         ],
+        "video": vid("WhatsApp Video 2026-06-10 at 16.09.32 (1).mp4"),
     },
 
 ]
@@ -189,6 +202,7 @@ def generate_csv():
     fieldnames = [
         "id", "title", "description", "availability", "condition",
         "price", "link", "image_link", "brand", "google_product_category",
+        "video",
     ] + extra_fields
 
     with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
@@ -206,6 +220,7 @@ def generate_csv():
                 "image_link"              : listing["image_link"],
                 "brand"                   : BRAND,
                 "google_product_category" : CATEGORY,
+                "video"                   : listing.get("video", ""),
             }
             extras = listing.get("additional_images", [])
             for i in range(MAX_EXTRA_IMAGES):
@@ -214,8 +229,8 @@ def generate_csv():
 
     print(f"\nGenerated : {OUTPUT_FILE}")
     print(f"Listings  : {len(LISTINGS)}")
-    print(f"\nNext step : Upload to Facebook Commerce Manager")
-    print(f"  business.facebook.com > Commerce Manager > Catalog > Add Items > Use Data Feed > Upload File\n")
+    print(f"\nNext step : Re-upload to Facebook Commerce Manager")
+    print(f"  business.facebook.com > Commerce Manager > Data Sources > Re-upload data file\n")
 
 
 if __name__ == "__main__":
